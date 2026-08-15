@@ -760,6 +760,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
     border-radius:9px;padding:6px 10px;font-size:13.5px;font-family:inherit;
   }
   input[type=search]{flex:1 1 220px;min-width:180px}
+  .ctrlrow.renta{padding-bottom:12px;border-bottom:1px solid var(--line)}
+  #renta{background:var(--panel-2);color:var(--ink);border:1px solid var(--line-2);
+         border-radius:9px;padding:6px 10px;font:inherit;font-size:13.5px;width:145px;
+         font-variant-numeric:tabular-nums}
+  .rentanota{font-size:12px;color:var(--ink-3);flex:1 1 240px;min-width:200px}
+  .rentanota strong{color:var(--ink-2)}
 
   /* ---------- map ---------- */
   #map{height:min(66vh,560px);width:100%;border-radius:var(--radius);z-index:1;background:var(--panel-2)}
@@ -869,6 +875,13 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <section>
     <div class="sechead"><h2>Filtros</h2><span class="hint">Todo se aplica al mapa, las tarjetas y la tabla a la vez.</span></div>
     <div class="panel controls">
+      <div class="ctrlrow renta">
+        <span class="lbl">Tu renta líquida</span>
+        <input type="text" inputmode="numeric" id="renta" placeholder="ej: 950.000">
+        <button class="btn" id="rentaOk">Guardar</button>
+        <button class="btn" id="rentaClr" hidden>Borrar</button>
+        <span class="rentanota" id="rentaNota"></span>
+      </div>
       <div class="ctrlrow"><span class="lbl">Estado del aviso</span>
         <button class="chip" data-f="estado" data-v="vivas" aria-pressed="true">Solo vivas</button>
         <button class="chip" data-f="estado" data-v="todas" aria-pressed="false">Incluir finalizadas / caídas</button>
@@ -975,7 +988,14 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* ============================================================
    PARÁMETROS PERSONALES
    ============================================================ */
-const RENTA_LIQUIDA = 1280784;   // sueldo líquido declarado
+/* La renta líquida NO se guarda en este archivo: se pide en la página y queda
+   únicamente en el navegador de quien la escribe (localStorage). Así el HTML se
+   puede publicar sin exponer el sueldo de nadie. Sin renta, el tablero funciona
+   igual — solo se apagan los chequeos que dependen de ella. */
+const RENTA_KEY = "arriendo.renta.liquida";
+let RENTA_LIQUIDA = null;
+try{ const g=localStorage.getItem(RENTA_KEY); if(g && +g>0) RENTA_LIQUIDA=+g; }catch(e){}
+
 const PRESUPUESTO   = 400000;    // techo de arriendo (implícito en tu nota "17,5% sobre presupuesto")
 const UF            = 40851;     // UF al 14-ago-2026
 const NOTARIAL_STD  = 25000;     // gasto notarial típico repartido
@@ -1117,7 +1137,7 @@ const D = [
  arr:320000, gc:120000, m2:38, dorm:1, tipo:"1d", piso:null, est:"viva", fuente:"Portal Inmobiliario",
  url:"https://www.portalinmobiliario.com/MLC-2138523069-excelente-departamento-de-1-dormitorio-cerca-a-metro-_JM",
  bod:false, est_:false, masc:false, rentaX:4,
- n:["⚠⚠ Pide renta líquida de 4× el arriendo = $1.280.000. Tú ganas $1.280.784: calificas por $784 de diferencia. Cualquier mes con menos bono te deja fuera.","⛔ GGCC $120.000 sobre un arriendo de $320.000 — el total sube a $440.000. Sí incluye el agua caliente.","Edificio de 2021, solo 9 pisos, termopanel, horno y refrigerador incluidos, cowork, salón gourmet.","⚠ Publicado hace más de un año. Un aviso que lleva ese tiempo dando vueltas casi siempre significa que el precio o los requisitos no cuadran con el mercado."]},
+ n:["⚠⚠ <strong>Pide renta líquida de 4× el arriendo = $1.280.000</strong>, el requisito más alto de toda la lista. Si tu renta apenas pasa esa cifra, calificas por un margen mínimo — y cualquier mes con menos bono te deja fuera. Revisa el techo que te calcula el tablero antes de gastar una visita acá.","⛔ GGCC $120.000 sobre un arriendo de $320.000 — el total sube a $440.000. Sí incluye el agua caliente.","Edificio de 2021, solo 9 pisos, termopanel, horno y refrigerador incluidos, cowork, salón gourmet.","⚠ Publicado hace más de un año. Un aviso que lleva ese tiempo dando vueltas casi siempre significa que el precio o los requisitos no cuadran con el mercado."]},
 
 {id:"pi-2076411821", t:"1D 1B a pasos de Parque Bustamante", dir:"Curicó con Fray Camilo Henríquez, Santiago", sec:"Santa Isabel / Bustamante", lat:-33.4437, lng:-70.6363,
  arr:350000, gc:null, gcEst:60000, m2:35, dorm:1, tipo:"1d", piso:null, est:"viva", fuente:"Portal Inmobiliario",
@@ -1325,7 +1345,9 @@ function entrada(d){
   return {total:Math.round(total), dia1:Math.round(dia1), fija:false};
 }
 const rentaReq = d => arrOf(d) * (d.rentaX ?? 3);
-const califica = d => rentaReq(d) <= RENTA_LIQUIDA;
+const hayRenta = () => RENTA_LIQUIDA!=null;
+/* Sin renta declarada nadie queda descartado: el chequeo simplemente no se aplica. */
+const califica = d => !hayRenta() || rentaReq(d) <= RENTA_LIQUIDA;
 
 function score(d){
   const tot=totalOf(d), e=entrada(d).dia1, m=d.m2;
@@ -1338,7 +1360,7 @@ function score(d){
   s += (d.est==="viva"?12 : d.est==="proceso"?4 : d.est==="finalizada"?5 : 0); // vigencia
   if(d.tipo==="estudio") s -= 10;                                // no te gustan los de un ambiente
   if(m!=null && m<25) s -= 8;                                    // demasiado chico para vivir
-  if(!califica(d)) s -= 30;
+  if(hayRenta() && !califica(d)) s -= 30;
   if(d.arrDespues) s -= 4;
   if(arrOf(d) > PRESUPUESTO) s -= 8;
   return Math.max(0,Math.round(s));
@@ -1358,8 +1380,10 @@ const EXIGE_AVAL= ["ml-2074095183","ml-2094694905","ml-2115817023","ml-425501563
                    "ml-4230680278","pi-4161002076"];
 D.forEach(d=>{
   if(d.aval==null) d.aval = SIN_AVAL.includes(d.id) ? "no" : EXIGE_AVAL.includes(d.id) ? "si" : null;
-  d._t=totalOf(d); d._e=entrada(d); d._s=score(d); d._tier=tierOf(d);
 });
+/* El puntaje depende de la renta, así que se recalcula cada vez que cambia. */
+function recalcular(){ D.forEach(d=>{ d._t=totalOf(d); d._e=entrada(d); d._s=score(d); d._tier=tierOf(d); }); }
+recalcular();
 
 /* ============================================================
    ESTADO DE FILTROS
@@ -1525,7 +1549,7 @@ function tarjeta(d,i){
   if(d.aval==="no") badges.push(`<span class="bdg a">sin aval</span>`);
   if(d.aval==="si") badges.push(`<span class="bdg">exige aval</span>`);
   if(arrOf(d)>PRESUPUESTO) badges.push(`<span class="bdg d">+${Math.round((arrOf(d)/PRESUPUESTO-1)*100)}% s/ presupuesto</span>`);
-  if(!califica(d)) badges.push(`<span class="bdg d">no calificas solo</span>`);
+  if(hayRenta() && !califica(d)) badges.push(`<span class="bdg d">no calificas solo</span>`);
 
   return `<article class="card" id="c-${d.id}" style="border-left-color:${col}">
     <div class="top">
@@ -1563,7 +1587,7 @@ function fila(d,i){
     <td class="num">${d.m2??"—"}</td>
     <td class="num">${d.m2?clp(Math.round(d._t/d.m2)):"—"}</td>
     <td>${lbl[0]}</td>
-    <td class="num">${clp(rentaReq(d))} ${califica(d)?"✓":"✕"}</td>
+    <td class="num">${clp(rentaReq(d))}${hayRenta()?(califica(d)?" ✓":" ✕"):""}</td>
     <td>${d.nolink?"—":`<a href="${d.url}" target="_blank" rel="noopener">abrir ↗</a>`}</td>
   </tr>`;
 }
@@ -1595,12 +1619,15 @@ function kpis(){
   const minTot=vivas.reduce((a,b)=>b._t<a._t?b:a);
   const minEnt=vivas.reduce((a,b)=>b._e.dia1<a._e.dia1?b:a);
   const noCal=vivas.filter(d=>!califica(d)).length;
+  const kRenta = hayRenta()
+    ? `<div class="kpi"><div class="k">Arriendo máx. con tu renta</div><div class="v">${clp(RENTA_LIQUIDA/3)}</div><div class="n">regla 3× sobre ${clp(RENTA_LIQUIDA)} · ${noCal} avisos te dejan fuera</div></div>`
+    : `<div class="kpi"><div class="k">Arriendo máx. con tu renta</div><div class="v" style="color:var(--ink-3)">—</div><div class="n">escribe tu renta líquida arriba y te calculo el techo</div></div>`;
   document.getElementById("kpis").innerHTML=`
    <div class="kpi"><div class="k">Avisos recolectados</div><div class="v">${D.length}</div><div class="n">${vivas.length} vivos · ${D.length-vivas.length} finalizados o en proceso</div></div>
    <div class="kpi"><div class="k">Dentro de presupuesto</div><div class="v">${dentro.length}</div><div class="n">arriendo ≤ ${clp(PRESUPUESTO)}</div></div>
    <div class="kpi"><div class="k">Menor total mensual</div><div class="v">${clp(minTot._t)}</div><div class="n">${minTot.dir.split(",")[0]}</div></div>
    <div class="kpi"><div class="k">Menor costo de entrada</div><div class="v">${clp(minEnt._e.dia1)}</div><div class="n">${minEnt.dir.split(",")[0]}</div></div>
-   <div class="kpi"><div class="k">Arriendo máx. con tu renta</div><div class="v">${clp(RENTA_LIQUIDA/3)}</div><div class="n">regla 3× sobre ${clp(RENTA_LIQUIDA)} · ${noCal} avisos te dejan fuera</div></div>`;
+   ${kRenta}`;
 }
 
 /* ---- visitas ---- */
@@ -1645,7 +1672,8 @@ document.getElementById("metodo").innerHTML = `
 <li><strong>Notaría:</strong> ${clp(NOTARIAL_STD)} estimados, salvo donde el aviso dice que se reparte 50/50.</li>
 </ul>
 <p><strong>Total mensual</strong> = arriendo + gasto común. Donde el precio es promocional (los que suben después del mes 3 o 4) uso el <em>precio de régimen</em>, no el gancho, porque es lo que vas a pagar 9 de los 12 meses. Los gastos comunes estimados van marcados <em>(estimado)</em> y con asterisco en la tabla.</p>
-<p><strong>Renta requerida</strong> = arriendo × el múltiplo que exige el aviso (3× por defecto; 2,5× en Monjitas 360; 2,8× en Houm; 3,5× en Fray Camilo 440; 4× en Gral. Jofré 202). Con tu líquido de ${clp(RENTA_LIQUIDA)} el techo con la regla estándar 3× es <strong>${clp(RENTA_LIQUIDA/3)}</strong> de arriendo.</p>
+<p><strong>Renta requerida</strong> = arriendo × el múltiplo que exige el aviso (3× por defecto; 2,5× en Monjitas 360, Jofré 202 y Jofré 107 depto 202; 2,8× en Houm; 3,5× en Fray Camilo 440; 4× en el aviso viejo de Gral. Jofré 202).${hayRenta()?` Con el líquido que ingresaste, el techo con la regla estándar 3× es <strong>${clp(RENTA_LIQUIDA/3)}</strong> de arriendo.`:""}</p>
+<p><strong>Tu renta no se guarda en este archivo.</strong> Se escribe en la página y queda solo en tu navegador (<code>localStorage</code>), en tu computador. Por eso el HTML se puede publicar o compartir sin exponer tu sueldo. El botón «Borrar» la elimina. Sin renta ingresada, el tablero funciona igual: solo se apagan el techo de arriendo, el filtro «solo donde califico» y los visto bueno de la tabla — y ningún aviso queda descartado por ese motivo.</p>
 <p><strong>Puntaje y niveles A–D:</strong> 36 pts total mensual, 20 pts costo de entrada, 20 pts superficie, 12 pts vigencia del aviso, 12 pts extras (bodega, estacionamiento, mascotas). Penaliza no calificar por renta (−30), <strong>ser de un ambiente (−10)</strong>, bajar de 25 m² (−8), precio gancho que sube después de unos meses (−4) y pasarse del presupuesto de arriendo (−8). Los de un ambiente siguen en la lista con su etiqueta, porque dijiste que igual quieres ver algunos — solo dejan de encabezarla. Los avisos no vigentes salen grises en el mapa aunque su puntaje sea alto.</p>
 <p style="color:var(--ink-3);font-size:13px">El puntaje es una guía, no un veredicto: no sabe si te gustó la luz del departamento ni cómo se siente la cuadra a las 9 de la noche. Úsalo para decidir a cuáles vas primero, no para descartar sin visitar.</p>
 <p><strong>Ubicaciones:</strong> geocodificadas a mano por dirección y cuadra. Las marcadas <em>📍 aproximada</em> son de avisos que no publican dirección exacta (los de TikTok, Zañartu/Til Til) — quedan pinchadas sobre la referencia que sí dan.</p>
@@ -1688,6 +1716,33 @@ document.getElementById("reset").onclick=()=>{
   document.getElementById("maxEntradaOut").textContent="sin tope";
   document.getElementById("orden").value="score"; render();
 };
+/* ---- renta: se escribe acá y vive solo en este navegador ---- */
+const $renta=document.getElementById("renta"), $rNota=document.getElementById("rentaNota"),
+      $rClr=document.getElementById("rentaClr");
+function pintarRenta(){
+  if(hayRenta()){
+    $renta.value=RENTA_LIQUIDA.toLocaleString("es-CL");
+    $rNota.innerHTML=`Techo con la regla 3×: <strong>${clp(RENTA_LIQUIDA/3)}</strong> de arriendo. Guardada solo en este navegador.`;
+    $rClr.hidden=false;
+  }else{
+    $renta.value=""; $rClr.hidden=true;
+    $rNota.textContent="Opcional. No se guarda en el archivo ni se publica: queda solo en este navegador.";
+  }
+}
+function fijarRenta(v){
+  RENTA_LIQUIDA = v;
+  try{ v==null ? localStorage.removeItem(RENTA_KEY) : localStorage.setItem(RENTA_KEY,String(v)); }catch(e){}
+  pintarRenta(); recalcular(); kpis(); render();
+}
+document.getElementById("rentaOk").onclick=()=>{
+  const n=parseInt(String($renta.value).replace(/[^\d]/g,""),10);
+  if(!n||n<=0){ $rNota.textContent="Escribe un monto válido, por ejemplo 950.000."; return; }
+  fijarRenta(n);
+};
+$renta.addEventListener("keydown",e=>{ if(e.key==="Enter") document.getElementById("rentaOk").click(); });
+$rClr.onclick=()=>fijarRenta(null);
+pintarRenta();
+
 document.getElementById("themebtn").onclick=()=>{
   const cur=document.documentElement.getAttribute("data-theme");
   const dark=window.matchMedia("(prefers-color-scheme: dark)").matches;

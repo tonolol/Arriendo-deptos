@@ -23,15 +23,25 @@ superficie, $/m², renta exigida y si califica con el sueldo configurado.
   mascotas, sin comisión y "solo donde califico".
 - Tabla comparativa ordenable con los mismos filtros aplicados.
 
+## Tu renta no vive en el repositorio
+
+La renta líquida se escribe **en la página**, en el campo del panel de filtros, y queda
+guardada únicamente en el navegador de quien la escribe (`localStorage`). No está en el
+HTML ni se sube a ningún lado, así que el archivo se puede publicar o compartir sin
+exponer el sueldo de nadie. El botón «Borrar» la elimina.
+
+Sin renta ingresada el tablero funciona igual: solo se apagan el techo de arriendo, el
+filtro «solo donde califico» y los visto bueno de la tabla, y ningún aviso queda
+descartado por ese motivo.
+
 ## Ajustar los supuestos
 
 Al comienzo del `<script>` principal, en `index.html`:
 
 ```js
-const RENTA_LIQUIDA = 1280784;  // sueldo líquido
-const PRESUPUESTO   = 400000;   // techo de arriendo
-const UF            = 40851;    // UF al 14-ago-2026
-const NOTARIAL_STD  = 25000;    // gasto notarial estimado
+const PRESUPUESTO  = 400000;   // techo de arriendo
+const UF           = 40851;    // UF al 14-ago-2026
+const NOTARIAL_STD = 25000;    // gasto notarial estimado
 ```
 
 Los avisos viven en el arreglo `D`, uno por objeto. Para agregar uno nuevo basta copiar
