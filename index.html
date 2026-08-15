@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Arriendos Santiago — Tablero de búsqueda</title>
+<title>Arriendos 1D Santiago</title>
 <style>/* Leaflet 1.9.4 - BSD-2-Clause - https://leafletjs.com */
 /* required styles */
 
@@ -748,6 +748,19 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
   /* ---------- map ---------- */
   #map{height:min(66vh,560px);width:100%;border-radius:var(--radius);z-index:1;background:var(--panel-2)}
+  .mapnota{margin:10px 0 0;padding:9px 12px;background:var(--c-bg);color:var(--c);
+           border-radius:9px;font-size:12.5px;line-height:1.5}
+  .mapnota code{background:transparent;border:0;padding:0;color:inherit;font-weight:700}
+  .leaflet-div-icon{background:transparent;border:0}
+  .ejelbl,.hitolbl{white-space:nowrap;pointer-events:none;font-weight:700;
+    text-shadow:0 0 4px var(--panel-2),0 0 4px var(--panel-2),0 0 4px var(--panel-2),0 0 4px var(--panel-2)}
+  .ejelbl{font-size:10.5px;color:var(--ink-3);letter-spacing:.02em;transform:translate(-50%,-50%)}
+  .hitolbl{font-size:11px;color:var(--ink-2);transform:translate(9px,-7px)}
+  /* sin zoom suficiente solo se rotulan los tres ejes mayores */
+  .leaflet-container .ejelbl:not(.mayor),
+  .leaflet-container .hitolbl{display:none}
+  .leaflet-container.z-medio .hitolbl{display:block}
+  .leaflet-container.z-cerca .ejelbl:not(.mayor){display:block}
   .maplegend{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
   .lg{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2);
       background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
@@ -891,6 +904,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <span class="hint">Clic en un punto abre la ficha con GGCC, total y entrada · doble clic va directo al aviso.</span>
     </div>
     <div class="panel" style="padding:8px"><div id="map"></div></div>
+    <p class="mapnota" id="mapnota" hidden>Sin acceso al mapa de OpenStreetMap, así que estás viendo un <strong>esquema de referencia dibujado a mano</strong>: solo las avenidas que ordenan la zona, para ubicarte. No está a escala y no reemplaza un mapa real — abre el archivo <code>index.html</code> en tu navegador para ver el mapa de verdad.</p>
     <div class="maplegend">
       <span class="lg"><i class="dot" style="background:#16a34a"></i> A — mejores opciones</span>
       <span class="lg"><i class="dot" style="background:#2563eb"></i> B — buenas</span>
@@ -1327,12 +1341,66 @@ function ordenar(a,b){
    MAPA
    ============================================================ */
 const HAYMAPA = (typeof L !== "undefined");
-let map=null, layer=null; const MK={};
+let map=null, layer=null, nivelZoom=()=>{}; const MK={};
+
+/* Capa de referencia propia: se dibuja sola si OpenStreetMap no carga
+   (sin conexión, o dentro de un visor que bloquea pedidos externos).
+   Trazada a mano sobre las avenidas que ordenan la zona de búsqueda. */
+const EJES = [
+  ["Alameda",              [[-33.4530,-70.6720],[-33.4495,-70.6620],[-33.4455,-70.6520],[-33.4420,-70.6440],[-33.4392,-70.6385],[-33.4372,-70.6344]], 1],
+  ["Av. Providencia",      [[-33.4372,-70.6344],[-33.4330,-70.6250],[-33.4295,-70.6170],[-33.4270,-70.6100]], 1],
+  ["Av. Vicuña Mackenna",  [[-33.4372,-70.6344],[-33.4443,-70.6337],[-33.4520,-70.6325],[-33.4565,-70.6318],[-33.4650,-70.6300],[-33.4740,-70.6288],[-33.4830,-70.6275]], 1],
+  ["Av. Santa Isabel",     [[-33.4445,-70.6470],[-33.4443,-70.6337],[-33.4438,-70.6260],[-33.4435,-70.6180]], 0],
+  ["Av. Ñuble",            [[-33.4562,-70.6430],[-33.4565,-70.6318],[-33.4572,-70.6240]], 0],
+  ["Av. Irarrázaval",      [[-33.4530,-70.6322],[-33.4535,-70.6220],[-33.4545,-70.6060],[-33.4558,-70.5900]], 0],
+  ["Av. Matta",            [[-33.4618,-70.6500],[-33.4620,-70.6350],[-33.4625,-70.6240]], 0],
+  ["Av. Rodrigo de Araya", [[-33.4742,-70.6288],[-33.4740,-70.6120],[-33.4745,-70.5960]], 0],
+  ["Portugal",             [[-33.4400,-70.6412],[-33.4500,-70.6405],[-33.4610,-70.6398]], 0],
+  ["Av. Salvador",         [[-33.4300,-70.6255],[-33.4400,-70.6240],[-33.4535,-70.6222],[-33.4620,-70.6215]], 0],
+  ["Av. Macul",            [[-33.4600,-70.5958],[-33.4750,-70.5950],[-33.4870,-70.5945]], 0],
+];
+const HITOS = [
+  ["Plaza Italia",        -33.4372,-70.6344],
+  ["Barrio Lastarria",    -33.4368,-70.6402],
+  ["Metro Santa Isabel",  -33.4443,-70.6337],
+  ["Metro Ñuble",         -33.4565,-70.6318],
+  ["Parque Almagro",      -33.4528,-70.6478],
+  ["Plaza Ñuñoa",         -33.4558,-70.5960],
+];
+const PQ_BUSTAMANTE = [[-33.4379,-70.6352],[-33.4379,-70.6337],[-33.4441,-70.6331],[-33.4441,-70.6346]];
+
 if(HAYMAPA){
   map = L.map("map",{scrollWheelZoom:false}).setView([-33.4480,-70.6290],13.4);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+  const esquema = L.layerGroup();
+  L.polygon(PQ_BUSTAMANTE,{color:"#4a9d5f",weight:0,fillColor:"#4a9d5f",fillOpacity:.22,interactive:false}).addTo(esquema);
+  EJES.forEach(([nombre,pts,mayor])=>{
+    L.polyline(pts,{color:"#9aa4b2",weight:mayor?3.5:2,opacity:mayor?.75:.5,interactive:false}).addTo(esquema);
+    const m=pts[mayor?1:Math.floor(pts.length/2)];   // los ejes mayores rotulan arriba, no al medio
+    L.marker(m,{interactive:false,icon:L.divIcon({
+      className:"ejelbl"+(mayor?" mayor":""), html:nombre, iconSize:[0,0]})}).addTo(esquema);
+  });
+  HITOS.forEach(([nombre,la,ln])=>{
+    L.circleMarker([la,ln],{radius:3.5,color:"#6b7482",weight:1.5,fillColor:"#6b7482",fillOpacity:1,interactive:false}).addTo(esquema);
+    L.marker([la,ln],{interactive:false,icon:L.divIcon({className:"hitolbl",html:nombre,iconSize:[0,0]})}).addTo(esquema);
+  });
+  // las etiquetas aparecen por tramos de zoom para que no se pisen entre ellas
+  nivelZoom=()=>{ const z=map.getZoom(), c=map.getContainer();
+    c.classList.toggle("z-cerca", z>=14); c.classList.toggle("z-medio", z>=13); };
+  map.on("zoomend",nivelZoom);
+
+  let tilesOK=false, esquemaOn=false;
+  const tiles = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
     maxZoom:19, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   }).addTo(map);
+  function usarEsquema(){
+    if(esquemaOn||tilesOK) return; esquemaOn=true;
+    map.removeLayer(tiles); esquema.addTo(map);
+    document.getElementById("mapnota").hidden=false;
+  }
+  tiles.on("load",()=>{tilesOK=true;});
+  tiles.on("tileerror",usarEsquema);
+  setTimeout(usarEsquema,3000);
+
   map.on("click",()=>map.scrollWheelZoom.enable());
   layer = L.layerGroup().addTo(map);
 }else{
@@ -1446,6 +1514,7 @@ function render(){
   if(HAYMAPA && lista.length){
     const b=L.latLngBounds(lista.map(d=>[d.lat,d.lng]));
     map.fitBounds(b,{padding:[42,42],maxZoom:15});
+    nivelZoom();
   }
   document.querySelectorAll("[data-goto]").forEach(b=>b.onclick=()=>{
     const m=MK[b.dataset.goto]; if(!m) return;
