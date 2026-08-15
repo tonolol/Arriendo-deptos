@@ -990,8 +990,8 @@ const D = [
 {id:"ml-4213383020", t:"Estudio 1D 1B + bodega frente a Metro Ñuble", dir:"San Eugenio 1551, Ñuñoa", sec:"Ñuble / Santa Elena", lat:-33.4570, lng:-70.6280,
  arr:300000, gc:25000, m2:27, dorm:1, tipo:"1d", piso:19, est:"viva", fuente:"MercadoLibre",
  url:"https://departamento.mercadolibre.cl/MLC-4213383020-departamento-estudio-1d-1b-bodega-frente-a-metro-nuble-_JM",
- bod:true, est_:false, masc:true,
- n:["GGCC de $25.000: el más bajo de toda la lista, y por lejos.","Piso 19, terraza, bodega incluida, acepta mascotas.","Edificio con gimnasio, piscina, lavandería, sala multiuso.","Publicado hace ~56 días: confirmar que sigue disponible."]},
+ bod:true, est_:false, masc:true, dudaTipo:true,
+ n:["⚠ El aviso se titula «Departamento <strong>Estudio</strong> 1d + 1b» pero la ficha declara 1 dormitorio. Con 27 m² podría ser de un ambiente. Confírmalo antes de ir — es lo primero que hay que preguntar.","GGCC de $25.000: el más bajo de toda la lista, y por lejos.","Piso 19, terraza, bodega incluida, acepta mascotas.","Edificio con gimnasio, piscina, lavandería, sala multiuso.","Publicado hace ~56 días: confirmar que sigue disponible."]},
 
 {id:"ml-4159945150", t:"Oportunidad a pasos del Metro Ñuble", dir:"Sta. Elena 1760, Santiago", sec:"Ñuble / Santa Elena", lat:-33.4562, lng:-70.6392,
  arr:260000, gc:60000, m2:30, dorm:1, tipo:"1d", piso:6, est:"viva", fuente:"MercadoLibre",
@@ -1288,6 +1288,7 @@ function score(d){
   s += 20 * (m==null ? .45 : cl((m-20)/(42-20)));                // superficie
   s += 12 * ((d.bod?.4:0) + (d.est_?.35:0) + (d.masc?.2:0) + .05); // extras
   s += (d.est==="viva"?12 : d.est==="proceso"?4 : d.est==="finalizada"?5 : 0); // vigencia
+  if(d.tipo==="estudio") s -= 10;                                // no te gustan los de un ambiente
   if(m!=null && m<25) s -= 8;                                    // demasiado chico para vivir
   if(!califica(d)) s -= 30;
   if(d.arrDespues) s -= 4;
@@ -1453,6 +1454,8 @@ function tarjeta(d,i){
   const badges=[];
   badges.push(`<span class="bdg ${d.est==="viva"?t.toLowerCase():""}">${d.est==="viva"?"Nivel "+t:lbl[0]}</span>`);
   badges.push(`<span class="bdg">${d.sec}</span>`);
+  if(d.tipo==="estudio") badges.push(`<span class="bdg c">1 ambiente</span>`);
+  if(d.dudaTipo) badges.push(`<span class="bdg c">¿1 ambiente? confirmar</span>`);
   if(d.m2) badges.push(`<span class="bdg">${d.m2} m²</span>`);
   if(d.piso) badges.push(`<span class="bdg">piso ${d.piso}</span>`);
   if(d.bod) badges.push(`<span class="bdg a">bodega</span>`);
@@ -1556,7 +1559,7 @@ document.getElementById("metodo").innerHTML = `
 </ul>
 <p><strong>Total mensual</strong> = arriendo + gasto común. Donde el precio es promocional (los que suben después del mes 3 o 4) uso el <em>precio de régimen</em>, no el gancho, porque es lo que vas a pagar 9 de los 12 meses. Los gastos comunes estimados van marcados <em>(estimado)</em> y con asterisco en la tabla.</p>
 <p><strong>Renta requerida</strong> = arriendo × el múltiplo que exige el aviso (3× por defecto; 2,5× en Monjitas 360; 2,8× en Houm; 3,5× en Fray Camilo 440; 4× en Gral. Jofré 202). Con tu líquido de ${clp(RENTA_LIQUIDA)} el techo con la regla estándar 3× es <strong>${clp(RENTA_LIQUIDA/3)}</strong> de arriendo.</p>
-<p><strong>Puntaje y niveles A–D:</strong> 36 pts total mensual, 20 pts costo de entrada, 20 pts superficie, 12 pts vigencia del aviso, 12 pts extras (bodega, estacionamiento, mascotas). Penaliza no calificar por renta (−30), bajar de 25 m² (−8), precio gancho que sube después de unos meses (−4) y pasarse del presupuesto de arriendo (−8). Los avisos no vigentes salen grises en el mapa aunque su puntaje sea alto.</p>
+<p><strong>Puntaje y niveles A–D:</strong> 36 pts total mensual, 20 pts costo de entrada, 20 pts superficie, 12 pts vigencia del aviso, 12 pts extras (bodega, estacionamiento, mascotas). Penaliza no calificar por renta (−30), <strong>ser de un ambiente (−10)</strong>, bajar de 25 m² (−8), precio gancho que sube después de unos meses (−4) y pasarse del presupuesto de arriendo (−8). Los de un ambiente siguen en la lista con su etiqueta, porque dijiste que igual quieres ver algunos — solo dejan de encabezarla. Los avisos no vigentes salen grises en el mapa aunque su puntaje sea alto.</p>
 <p style="color:var(--ink-3);font-size:13px">El puntaje es una guía, no un veredicto: no sabe si te gustó la luz del departamento ni cómo se siente la cuadra a las 9 de la noche. Úsalo para decidir a cuáles vas primero, no para descartar sin visitar.</p>
 <p><strong>Ubicaciones:</strong> geocodificadas a mano por dirección y cuadra. Las marcadas <em>📍 aproximada</em> son de avisos que no publican dirección exacta (los de TikTok, Zañartu/Til Til) — quedan pinchadas sobre la referencia que sí dan.</p>
 <p><strong>UF:</strong> $${UF.toLocaleString("es-CL")} al 14-ago-2026, para convertir el aviso de iCasas que está en UF.</p>`;
