@@ -715,13 +715,21 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .sechead .hint{color:var(--ink-3);font-size:12.5px}
 
   /* ---------- KPIs ---------- */
+  .vh{font-size:clamp(17px,2.4vw,21px);margin:26px 0 11px;letter-spacing:-.015em}
+  .visitas{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px}
   .visita{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--d);
-          border-radius:var(--radius);padding:15px 17px;margin-top:18px;box-shadow:var(--shadow)}
+          border-radius:var(--radius);padding:15px 17px;box-shadow:var(--shadow);
+          display:flex;flex-direction:column;align-items:flex-start}
+  .visita.pend{border-left-color:var(--c)}
   .visita .k{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--d);font-weight:800}
-  .visita h3{margin:5px 0 9px;font-size:clamp(15px,2.2vw,18px);line-height:1.3;letter-spacing:-.015em;text-wrap:balance}
-  .visita p{margin:0 0 8px;font-size:13.5px;color:var(--ink-2);line-height:1.55}
-  .visita p.mas{font-size:13px}
-  .visita .btn{margin-top:2px;display:inline-block;text-decoration:none}
+  .visita.pend .k{color:var(--c)}
+  .visita h3{margin:5px 0 9px;font-size:clamp(15px,2.2vw,17px);line-height:1.3;letter-spacing:-.015em;text-wrap:balance}
+  .visita p{margin:0 0 9px;font-size:13.5px;color:var(--ink-2);line-height:1.55}
+  .visita p.clave{background:var(--panel-2);border-radius:9px;padding:9px 11px;font-size:13px}
+  .visita p.mas{font-size:12.5px;margin-bottom:2px;color:var(--ink-3)}
+  .visita .money{width:100%;margin:2px 0 10px}
+  .visita .notes{margin-bottom:12px}
+  .visita .btn{margin-top:auto;display:inline-block;text-decoration:none}
   .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:10px;margin-top:18px}
   .kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 13px;box-shadow:var(--shadow)}
   .kpi .k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);font-weight:600}
@@ -1053,7 +1061,14 @@ const D = [
 {id:"ml-4261693998", t:"Gral. Jofré 202, depto 606 — VISITA MAÑANA 11:45", dir:"Gral. Jofré 202, Santiago", sec:"Santa Isabel / Bustamante", lat:-33.4432, lng:-70.6370,
  arr:300000, gc:80000, m2:29.36, dorm:0, tipo:"estudio", piso:6, est:"viva", fuente:"Assetplan · Colife / MercadoLibre",
  url:"https://www.assetplan.cl/arriendo/departamento/santiago/colife/927/retail/332602",
- entFija:490500, rentaX:2.5, aval:"no", visita:"Domingo 16 de agosto, 11:45", dudaTipo:true,
+ entFija:490500, rentaX:2.5, aval:"no", dudaTipo:true,
+ visita:{cuando:"Domingo 16 de agosto, 11:45", estado:"agendada",
+  clave:"¿El dormitorio es una pieza cerrada, o es un espacio abierto?",
+  porque:"El mismo departamento está publicado dos veces y se contradice. Assetplan dice «1 dormitorio»; MercadoLibre declara <strong>«Dormitorios: 0» y «tipo Estudio»</strong>. Coinciden dirección, piso, m², precio, gasto común, vista y mascotas — es la misma unidad. Y en Assetplan va bajo la marca <strong>Colife</strong>, su línea de co-living. Como no te gustan los de un ambiente, esa es <em>la</em> pregunta del día. Con verlo sales de la duda en diez segundos.",
+  preguntas:["¿Los $80.000 de gasto común («referenciales») incluyen el agua caliente?",
+             "¿Qué otras unidades tienen disponibles en el edificio? Manejan varias.",
+             "¿Hay bodega arrendable aparte y a cuánto?",
+             "Fíjate en la luz real a esa hora: <strong>vista sur en Santiago es sin sol directo nunca</strong>."]},
  bod:false, est_:false, masc:true,
  n:["🗓️ <strong>Visita agendada: domingo 16 de agosto, 11:45.</strong> Llega con una pregunta hecha: <strong>¿el dormitorio es una pieza cerrada?</strong>","⚠ <strong>El mismo departamento está publicado dos veces y se contradice.</strong> En Assetplan dice «1 dormitorio»; en MercadoLibre la ficha declara <strong>«Dormitorios: 0» y «tipo Estudio»</strong>. Coinciden dirección, piso 6, 29,36 m², $300.000, GGCC $80.000, vista sur, mascotas y que no tiene bodega: es la misma unidad.","Súmale que en Assetplan va bajo la marca <strong>Colife</strong>, que es su línea de co-living — formato que suele ser de un ambiente. Con verlo sales de la duda en diez segundos.","Entrada <strong>confirmada y desglosada</strong>: $300.000 arriendo + $178.500 comisión + $12.000 informes = $490.500. La garantía va aparte, en 3 cuotas de $100.000.","Renta exigida de solo <strong>2,5× ($750.000)</strong> y complementable con hasta 2 avales — de los requisitos más blandos de la lista. Precio fijo por 12 meses.","Pregunta allá: si los $80.000 de GGCC («referenciales») incluyen agua caliente, qué otras unidades tienen en el edificio, y si hay bodega arrendable aparte.","⚠ Vista sur en Santiago significa <strong>sin sol directo nunca</strong>. Fíjate en la luz real a esa hora."]},
 
@@ -1087,7 +1102,16 @@ const D = [
  arr:300000, gc:70000, m2:30, dorm:1, tipo:"1d", piso:null, est:"viva", fuente:"Portal Inmobiliario",
  url:"https://www.portalinmobiliario.com/MLC-2125464227--1-dormitorio-metro-santa-isabel--_JM",
  bod:false, est_:false, masc:false,
- n:["📍 Dirección por rango de numeración (600–900): el pin está al medio del tramo.","⚠ El aviso no tiene descripción ni fotos detalladas: solo precio, m² y ubicación. Hay que preguntar todo.","$370.000 totales por 30 m² sobre Vicuña Mackenna — precio de mercado, sin sorpresas ni ventajas."]},
+ visita:{cuando:"", estado:"coordinando",
+  clave:"¿Cuál es la dirección exacta? El aviso solo dice «600–900».",
+  porque:"Este es <strong>el aviso con menos información de toda la lista</strong>: no tiene descripción, ni requisitos, ni piso, ni orientación, ni fotos detalladas. Solo precio, m² y un rango de numeración de tres cuadras. Todo lo que sabes de él te lo tienen que decir por teléfono, así que llega con la lista hecha — y pregunta lo del costo de entrada <em>antes</em> de ir, que es el número que más te puede sorprender.",
+  preguntas:["<strong>Costo de entrada completo:</strong> ¿cuántos meses de garantía, hay comisión de corretaje, se puede pagar en cuotas? Los $803.500 que ves acá son cálculo mío con el estándar de mercado, no un dato del aviso.",
+             "¿Exigen aval? ¿Cuántas veces la renta piden y se puede complementar?",
+             "¿Los $70.000 de gasto común incluyen agua caliente?",
+             "¿Tiene bodega o estacionamiento? ¿Conexión a lavadora?",
+             "¿Qué piso y qué orientación? En Vicuña Mackenna el ruido de la avenida importa: pregunta si da a la calle o al interior.",
+             "¿Antigüedad del edificio y qué espacios comunes tiene?"]},
+ n:["📍 Dirección por rango de numeración (600–900): el pin está al medio del tramo, puede errar hasta tres cuadras.","⚠ El aviso no tiene descripción ni requisitos: solo precio, m² y ubicación. Hay que preguntar todo.","$370.000 totales por 30 m² sobre Vicuña Mackenna — precio de mercado, sin sorpresas ni ventajas evidentes."]},
 
 {id:"pi-2138523069", t:"1 dormitorio cerca de metro, edificio 2021", dir:"Gral. Jofré 202, Santiago", sec:"Santa Isabel / Bustamante", lat:-33.4433, lng:-70.6371,
  arr:320000, gc:120000, m2:38, dorm:1, tipo:"1d", piso:null, est:"viva", fuente:"Portal Inmobiliario",
@@ -1178,8 +1202,8 @@ const D = [
 {id:"pi-2111009529", t:"Edificio Urbana Vista Norte, piso 5", dir:"Av. Vicuña Mackenna 30, Providencia (Plaza Italia)", sec:"Providencia / B. Italia", lat:-33.4380, lng:-70.6340,
  arr:346000, gc:64000, m2:22, dorm:0, tipo:"estudio", piso:5, est:"viva", fuente:"Portal Inmobiliario",
  url:"https://www.portalinmobiliario.com/MLC-2111009529-edificio-urbana-vista-norte-piso-5-_JM",
- com:0, gar:1, garIni:1/3, bod:false, est_:false, masc:false,
- n:["Multifamily: sin comisión de corretaje, garantía en 3 cuotas (33% inicial), GGCC fijos.","La mejor ubicación pura de la lista: Plaza Italia, metro Baquedano al lado, L1 y L5.","⚠ Solo 22 m² — el segundo más chico. Es un estudio, no un 1D.","Opción «arriendo sin aval» si calificas por renta propia. Publicado el 15 de agosto."]},
+ com:0, gar:1, garIni:1/3, bod:false, est_:false, masc:true,
+ n:["Multifamily Assetplan (tienda oficial): sin comisión de corretaje, garantía en 3 cuotas (33% inicial), <strong>gastos comunes fijos</strong> — no varían mes a mes.","La mejor ubicación pura de la lista: Plaza Italia, metro Baquedano al lado, L1 y L5.","⚠ Solo 22 m² — el más chico después de Fray Camilo 440. La ficha lo dice sin rodeos: «este departamento es un tipo Estudio».","⚠ <strong>Sin conexión a lavadora</strong> y sin alarma. El edificio tiene lavandería y lockers.","Acepta mascotas, orientación norte, piso 5, chapa electrónica, agua caliente central.","⚠ MercadoLibre le pone la advertencia «<strong>no siempre responde las consultas</strong>» — insiste por WhatsApp si no contestan.","Estacionamiento y bodega existen pero se pagan aparte, no vienen en el precio.","Opción «arriendo sin aval» si acreditas la renta por tu cuenta. Código 2595-11."]},
 
 {id:"pi-2160509461", t:"1 dorm. Metro Bustamante / Barrio Italia", dir:"Santa Isabel con Condell, Providencia", sec:"Providencia / B. Italia", lat:-33.4437, lng:-70.6272,
  arr:350000, gc:60000, m2:40, dorm:1, tipo:"1d", piso:1, est:"viva", fuente:"Portal Inmobiliario",
@@ -1579,18 +1603,29 @@ function kpis(){
    <div class="kpi"><div class="k">Arriendo máx. con tu renta</div><div class="v">${clp(RENTA_LIQUIDA/3)}</div><div class="n">regla 3× sobre ${clp(RENTA_LIQUIDA)} · ${noCal} avisos te dejan fuera</div></div>`;
 }
 
-/* ---- visita agendada ---- */
+/* ---- visitas ---- */
 (function(){
-  const v=D.find(d=>d.visita); if(!v) return;
-  document.getElementById("visita").innerHTML=`
-   <div class="visita">
-     <div class="k">Visita agendada · ${v.visita}</div>
-     <h3>${v.dir} — llega con una pregunta hecha: ¿el dormitorio es una pieza cerrada?</h3>
-     <p>Este mismo departamento está publicado dos veces y <strong>se contradice</strong>: Assetplan dice «1 dormitorio», MercadoLibre declara <strong>«Dormitorios: 0» y «tipo Estudio»</strong>. Coinciden dirección, piso, m², precio, gasto común, vista y mascotas — es la misma unidad. Como no te gustan los de un ambiente, esa es <em>la</em> pregunta del día.</p>
-     <p>No es para cancelar: a ${clp(v._t)} al mes, con entrada de ${clp(v._e.dia1)} y renta exigida de solo 2,5×, es de las mejores relaciones de la lista. Pero si el dormitorio resulta ser un espacio abierto, ahí se acaba.</p>
-     <p class="mas"><strong>Lo demás que conviene preguntar allá:</strong> si los $80.000 de gasto común («referenciales») incluyen agua caliente; qué otras unidades tienen en el edificio, porque manejan varias; si hay bodega arrendable aparte y a cuánto. Y un detalle que no sale en el papel: <strong>vista sur en Santiago significa sin sol directo nunca</strong> — fíjate en la luz real a esa hora.</p>
-     <a class="btn pri" href="${v.url}" target="_blank" rel="noopener">Abrir la publicación</a>
-   </div>`;
+  const vs=D.filter(d=>d.visita); if(!vs.length) return;
+  const orden={agendada:0,coordinando:1};
+  vs.sort((a,b)=>orden[a.visita.estado]-orden[b.visita.estado]);
+  document.getElementById("visita").innerHTML=
+   `<h2 class="vh">Tus visitas</h2><div class="visitas">` + vs.map(d=>{
+    const v=d.visita, ag=v.estado==="agendada";
+    return `<div class="visita${ag?"":" pend"}">
+     <div class="k">${ag?"Visita agendada":"Visita por coordinar"}${v.cuando?" · "+v.cuando:""}</div>
+     <h3>${d.dir}</h3>
+     <p class="clave">Llega con esta pregunta hecha: <strong>${v.clave}</strong></p>
+     <p>${v.porque}</p>
+     <div class="money">
+       <div class="r"><span>Arriendo</span><span>${clp(d.arr)}</span></div>
+       <div class="r"><span>Gasto común${gcIsEst(d)?" (est.)":""}</span><span>${clp(gcOf(d))}</span></div>
+       <div class="r tot"><span>Total mensual</span><span>${clp(d._t)}</span></div>
+       <div class="r ent"><span>Entrada día 1${d._e.fija?" (confirmada)":" (estimada)"}</span><span>${clp(d._e.dia1)}</span></div>
+     </div>
+     <p class="mas"><strong>Lo demás que conviene preguntar:</strong></p>
+     <ul class="notes">${v.preguntas.map(p=>`<li>${p}</li>`).join("")}</ul>
+     ${d.nolink?"":`<a class="btn pri" href="${d.url}" target="_blank" rel="noopener">Abrir la publicación</a>`}
+    </div>`;}).join("") + `</div>`;
 })();
 
 /* ---- muertos ---- */
