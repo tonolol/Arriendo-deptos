@@ -786,6 +786,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .lg{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2);
       background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
   .dot{width:11px;height:11px;border-radius:50%;display:inline-block;border:2px solid rgba(255,255,255,.85);box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+  .lgdot{width:12px;height:12px;border-radius:50%;display:inline-block;border:2.5px solid currentColor;background:transparent}
   .leaflet-popup-content-wrapper{background:var(--panel);color:var(--ink);border-radius:12px;box-shadow:var(--shadow)}
   .leaflet-popup-tip{background:var(--panel)}
   .leaflet-popup-content{margin:12px 14px;width:264px!important;font-family:inherit;line-height:1.45}
@@ -838,6 +839,24 @@ svg.leaflet-image-layer.leaflet-interactive path {
   @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn.pri{color:#0d1117}}
   :root[data-theme="dark"] .btn.pri{color:#0d1117}
   .score{margin-left:auto;font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+
+  .seg-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .seg-btn{font-size:11.5px;font-weight:600;padding:4.5px 10px;border-radius:20px;
+    border:1.5px solid var(--line-2);background:var(--panel-2);color:var(--ink-3);
+    cursor:pointer;font-family:inherit;white-space:nowrap;transition:.12s ease}
+  .seg-btn:hover{border-color:var(--ink-3);color:var(--ink-2)}
+  .seg-btn.contactado[aria-pressed="true"]{background:#7c3aed22;border-color:#7c3aed;color:#7c3aed}
+  .seg-btn.agendado[aria-pressed="true"]{background:#0891b222;border-color:#0891b2;color:#0891b2}
+  .seg-btn.visitado[aria-pressed="true"]{background:#db277722;border-color:#db2777;color:#db2777}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .seg-btn.contactado[aria-pressed="true"]{color:#a78bfa;border-color:#a78bfa}
+    :root:not([data-theme="light"]) .seg-btn.agendado[aria-pressed="true"]{color:#22d3ee;border-color:#22d3ee}
+    :root:not([data-theme="light"]) .seg-btn.visitado[aria-pressed="true"]{color:#f472b6;border-color:#f472b6}
+  }
+  :root[data-theme="dark"] .seg-btn.contactado[aria-pressed="true"]{color:#a78bfa;border-color:#a78bfa}
+  :root[data-theme="dark"] .seg-btn.agendado[aria-pressed="true"]{color:#22d3ee;border-color:#22d3ee}
+  :root[data-theme="dark"] .seg-btn.visitado[aria-pressed="true"]{color:#f472b6;border-color:#f472b6}
+  .lg-seg{font-size:12px}
 
   /* ---------- table ---------- */
   .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);box-shadow:var(--shadow)}
@@ -943,6 +962,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <span class="lg"><i class="dot" style="background:#94a3b8"></i> Finalizada, caída o en proceso</span>
       <span class="lg">Círculo grande = aviso vivo</span>
     </div>
+    <div class="maplegend">
+      <span class="lg lg-seg"><i class="lgdot" style="color:#7c3aed"></i> Ya contacté</span>
+      <span class="lg lg-seg"><i class="lgdot" style="color:#0891b2"></i> Visita agendada</span>
+      <span class="lg lg-seg"><i class="lgdot" style="color:#db2777"></i> Ya fui</span>
+      <span class="hint">El halo alrededor del punto es tu seguimiento — se marca desde cada tarjeta, abajo.</span>
+    </div>
   </section>
 
   <section>
@@ -992,6 +1017,15 @@ svg.leaflet-image-layer.leaflet-interactive path {
    únicamente en el navegador de quien la escribe (localStorage). Así el HTML se
    puede publicar sin exponer el sueldo de nadie. Sin renta, el tablero funciona
    igual — solo se apagan los chequeos que dependen de ella. */
+/* Seguimiento por aviso (contacté / visita agendada / ya fui), igual que la renta:
+   vive solo en este navegador, no se guarda en el archivo. */
+const SEG_KEY = "arriendo.seguimiento";
+let SEG = {};
+try{ const g=localStorage.getItem(SEG_KEY); if(g) SEG=JSON.parse(g); }catch(e){}
+function guardarSeg(){ try{ localStorage.setItem(SEG_KEY, JSON.stringify(SEG)); }catch(e){} }
+const SEG_LBL = {contactado:"📨 Contacté", agendado:"📅 Visita agendada", visitado:"✅ Ya fui"};
+const SEG_HEX = {contactado:"#7c3aed", agendado:"#0891b2", visitado:"#db2777"};
+
 const RENTA_KEY = "arriendo.renta.liquida";
 let RENTA_LIQUIDA = null;
 try{ const g=localStorage.getItem(RENTA_KEY); if(g && +g>0) RENTA_LIQUIDA=+g; }catch(e){}
@@ -1206,7 +1240,7 @@ const D = [
  bod:true, est_:false, masc:false,
  n:["⛔ GGCC de $145.000: el más alto de toda la lista. El arriendo parece bueno hasta que sumas.","Ventanales de piso a techo, balcón con vista a la ciudad y al cerro, baño en suite.","No permite mascotas. Lleva 49 días publicado — el gasto común lo explica."]},
 
-{id:"tt-guayaquil", t:"Loft de dos niveles con patio privado (TikTok)", dir:"Calle Guayaquil, Santiago", sec:"Lastarria / Centro", lat:-33.439, lng:-70.642, aprox:true,
+{id:"tt-guayaquil", t:"Loft de dos niveles con patio privado (TikTok)", dir:"Calle Guayaquil, Santiago", sec:"Lastarria / Centro", lat:-33.44288098018105, lng:-70.64272894326737,
  arr:450000, gc:null, gcEst:40000, m2:null, dorm:1, tipo:"1d", piso:null, est:"viva", fuente:"TikTok · Portal Chile Propiedades",
  url:"https://www.tiktok.com/@portalchilepropiedadescl",
  bod:true, est_:false, masc:false,
@@ -1499,12 +1533,13 @@ if(HAYMAPA){
 }
 
 function popHTML(d){
-  const gc=gcOf(d), lbl=ESTLBL[d.est]||["",""];
+  const gc=gcOf(d), lbl=ESTLBL[d.est]||["",""], seg=SEG[d.id];
   const link = d.nolink ? `<div style="text-align:center;font-size:12px;color:var(--ink-3)">Sin link — contacto directo</div>`
     : `<a class="go" href="${d.url}" target="_blank" rel="noopener">Abrir el aviso ↗</a>`;
   return `<div class="pop">
     <h4>${d.t}</h4>
     <p class="addr">${d.dir}${d.aprox?" · 📍 ubicación aproximada":""}</p>
+    ${seg?`<p style="margin:0 0 9px;font-size:12px;font-weight:700;color:${SEG_HEX[seg]}">${SEG_LBL[seg]}</p>`:""}
     <table>
       <tr><td>Arriendo</td><td>${clp(d.arr)}${d.arrDespues?` → ${clp(d.arrDespues)}`:""}</td></tr>
       <tr><td>Gasto común${gcIsEst(d)?" (est.)":""}</td><td>${gc?clp(gc):"no publicado"}</td></tr>
@@ -1524,8 +1559,14 @@ function pintarMapa(lista){
   layer.clearLayers();
   [...lista].sort((a,b)=>CAPA[markerTier(a)]-CAPA[markerTier(b)]).forEach(d=>{
     const tier=markerTier(d);
+    const radio = d.est==="viva"?9:6.5;
+    if(SEG[d.id]){
+      L.circleMarker([d.lat,d.lng],{
+        radius:radio+5, color:SEG_HEX[SEG[d.id]], weight:3, fill:false, opacity:.95, interactive:false
+      }).addTo(layer);
+    }
     const m=L.circleMarker([d.lat,d.lng],{
-      radius: d.est==="viva"?9:6.5, color:"#fff", weight:2,
+      radius: radio, color:"#fff", weight:2,
       fillColor:TIERCOL[tier], fillOpacity: d.est==="viva"?.95:.6
     }).bindPopup(popHTML(d),{maxWidth:300})
       .bindTooltip(`${d._tier} · ${clp(d._t)}/mes`,{direction:"top",offset:[0,-8]});
@@ -1573,6 +1614,8 @@ function tarjeta(d,i){
     </div>
     <div class="badges">${badges.join("")}</div>
     <ul class="notes">${d.n.map(x=>`<li>${x}</li>`).join("")}</ul>
+    <div class="seg-row">${Object.entries(SEG_LBL).map(([k,lbl])=>
+      `<button class="seg-btn ${k}" data-seg="${k}" data-id="${d.id}" aria-pressed="${SEG[d.id]===k}">${lbl}</button>`).join("")}</div>
     <div class="cardfoot">
       <button class="btn" data-goto="${d.id}">Ver en el mapa</button>
       ${d.nolink?"":`<a class="btn pri" href="${d.url}" target="_blank" rel="noopener">Abrir aviso</a>`}
@@ -1685,8 +1728,8 @@ document.getElementById("metodo").innerHTML = `
 <p style="color:var(--ink-3);font-size:13px">El puntaje es una guía, no un veredicto: no sabe si te gustó la luz del departamento ni cómo se siente la cuadra a las 9 de la noche. Úsalo para decidir a cuáles vas primero, no para descartar sin visitar.</p>
 <p><strong>Ubicaciones:</strong> ancladas en las coordenadas reales de siete estaciones de metro (Baquedano, Parque Bustamante, Santa Isabel, Irarrázaval, Ñuble, Ñuñoa y Rodrigo de Araya), y desde ahí ubicadas por calle y cuadra. La precisión es <strong>a nivel de cuadra, no de portal</strong>: sirve para ver agrupaciones y distancias al metro, no para tocar el timbre. Las marcadas <em>📍 aproximada</em> son de avisos que no publican dirección exacta (los de TikTok, Vicuña Mackenna 600–900, Zañartu/Til Til) y quedan pinchadas sobre la referencia que sí dan.</p>
 <p style="color:var(--ink-3);font-size:13px">El racimo de Santa Elena / Maule (Ñuble / Santa Elena) se corrigió el 16 de agosto acercándolo a Vicuña Mackenna, con investigación indirecta — no pude geocodificar en línea porque los mismos bloqueos que afectan a Portal Inmobiliario también afectan a Wikipedia, Nominatim y otros mapas. Si al recorrer la zona ves algún punto corrido, dilo y lo ajusto con tu referencia real, que vale más que cualquier búsqueda mía.</p>
-<p style="color:var(--ink-3);font-size:13px"><strong>Con pin exacto de Google Maps, sacado en terreno el 16 de agosto (43 avisos de 46):</strong> todo el mapa salvo tres. Los errores que tenía iban de 52 m a <strong>1.766 m</strong> y cada uno en su propia dirección — no hubo nunca un sesgo único que se pudiera aplicar al mapa de un tirón; cada calle se corrigió con su propio dato. José Domingo Cañas y Vicuña Mackenna 600-900 resultaron ser los peor ubicados de este último lote: 613 m y 474 m de error respectivamente.</p>
-<p style="color:var(--ink-3);font-size:13px"><strong>Sin dirección exacta, marcados 📍 aproximado (3 avisos):</strong> Calle Guayaquil, Zañartu/Til Til y el aviso de Cimientos (sector Parque Bustamante) no traen número de calle verificable en su propio anuncio. Quedan pinchados sobre la mejor referencia disponible, no sobre la dirección real — la única forma de sacarlos de esta categoría es que el corredor confirme la dirección exacta.</p>
+<p style="color:var(--ink-3);font-size:13px"><strong>Con pin exacto de Google Maps, sacado en terreno el 16 de agosto (44 avisos de 46):</strong> todo el mapa salvo dos. Los errores que tenía iban de 52 m a <strong>1.766 m</strong> y cada uno en su propia dirección — no hubo nunca un sesgo único que se pudiera aplicar al mapa de un tirón; cada calle se corrigió con su propio dato.</p>
+<p style="color:var(--ink-3);font-size:13px"><strong>Sin dirección exacta, marcados 📍 aproximado (2 avisos):</strong> Zañartu/Til Til y el aviso de Cimientos (sector Parque Bustamante) no traen número de calle verificable en su propio anuncio. Quedan pinchados sobre la mejor referencia disponible, no sobre la dirección real — la única forma de sacarlos de esta categoría es que el corredor confirme la dirección exacta.</p>
 <p><strong>UF:</strong> $${UF.toLocaleString("es-CL")} al 14-ago-2026, para convertir el aviso de iCasas que está en UF.</p>`;
 
 document.getElementById("footer").innerHTML =
@@ -1706,6 +1749,15 @@ document.addEventListener("click",e=>{
     document.querySelectorAll(`.chip[data-f="${f}"]`).forEach(x=>x.setAttribute("aria-pressed",x===c));
   }
   render();
+});
+document.addEventListener("click",e=>{
+  const b=e.target.closest(".seg-btn"); if(!b) return;
+  const id=b.dataset.id, val=b.dataset.seg;
+  if(SEG[id]===val) delete SEG[id]; else SEG[id]=val;
+  guardarSeg();
+  const abierta=MK[id]&&MK[id].isPopupOpen&&MK[id].isPopupOpen();
+  render();
+  if(abierta) MK[id].openPopup();
 });
 const mt=document.getElementById("maxTotal"), me=document.getElementById("maxEntrada");
 mt.oninput=()=>{ const v=+mt.value; F.maxTotal = v>=700000?1e9:v;
