@@ -1512,10 +1512,14 @@ function popHTML(d){
     </table>${link}</div>`;
 }
 
+/* Los marcadores se dibujan de peor a mejor para que los verdes queden
+   siempre encima y los rojos y grises debajo: en SVG manda el orden de
+   inserción, así que el último en agregarse es el que gana el clic. */
+const CAPA = {X:0, D:1, C:2, B:3, A:4};
 function pintarMapa(lista){
   if(!HAYMAPA) return;
   layer.clearLayers();
-  lista.forEach(d=>{
+  [...lista].sort((a,b)=>CAPA[markerTier(a)]-CAPA[markerTier(b)]).forEach(d=>{
     const tier=markerTier(d);
     const m=L.circleMarker([d.lat,d.lng],{
       radius: d.est==="viva"?9:6.5, color:"#fff", weight:2,
