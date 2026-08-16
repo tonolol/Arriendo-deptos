@@ -1018,10 +1018,33 @@ svg.leaflet-image-layer.leaflet-interactive path {
    puede publicar sin exponer el sueldo de nadie. Sin renta, el tablero funciona
    igual — solo se apagan los chequeos que dependen de ella. */
 /* Seguimiento por aviso (contacté / visita agendada / ya fui), igual que la renta:
-   vive solo en este navegador, no se guarda en el archivo. */
+   vive solo en este navegador, no se guarda en el archivo — por diseño, ni yo
+   puedo escribir en el localStorage de tu teléfono desde acá. Lo que sí puedo
+   hacer es dejar un punto de partida (SEG_SEED) con lo que reportaste el 16 de
+   agosto. Se aplica SOLO la primerísima vez que abres el tablero después de
+   este cambio, cuando tu navegador todavía no tiene nada guardado para esto —
+   así nunca pisa un clic tuyo real. Después de esa siembra, el botón manda.
+   Si ya habías tocado algún botón antes de este cambio, la siembra no corre:
+   marca a mano los que falten, es la única forma de no arriesgar lo tuyo. */
+const SEG_SEED = {
+  "ml-4261693998":"agendado",   // Gral. Jofré 202 — domingo 16, 11:45
+  "ml-2102532307":"agendado",   // Sta. Elena 1655 (Houm) — martes 18, 18:00
+  "pi-2076411821":"contactado", // Curicó c/ Fray Camilo Henríquez
+  "pi-4320355190":"contactado", // Alcalde Carlos Aldunate 33
+  "ml-4230680278":"contactado", // Gral. Jofré 107 piso 5
+  "pi-4229318516":"contactado", // Portugal 564
+  "pi-4296888428":"contactado", // Sta Victoria 210
+  "ml-4187142788":"contactado", // Av. Sta. Isabel 176
+  "pi-4161002076":"contactado", // Monjitas 360
+  "ml-4233325044":"contactado", // Gral. Jofré 107, a pasos de Parque Bustamante
+};
 const SEG_KEY = "arriendo.seguimiento";
 let SEG = {};
-try{ const g=localStorage.getItem(SEG_KEY); if(g) SEG=JSON.parse(g); }catch(e){}
+try{
+  const g=localStorage.getItem(SEG_KEY);
+  if(g){ SEG=JSON.parse(g); }
+  else{ SEG={...SEG_SEED}; localStorage.setItem(SEG_KEY, JSON.stringify(SEG)); }
+}catch(e){}
 function guardarSeg(){ try{ localStorage.setItem(SEG_KEY, JSON.stringify(SEG)); }catch(e){} }
 const SEG_LBL = {contactado:"📨 Contacté", agendado:"📅 Visita agendada", visitado:"✅ Ya fui"};
 const SEG_HEX = {contactado:"#7c3aed", agendado:"#0891b2", visitado:"#db2777"};
@@ -1319,6 +1342,14 @@ const D = [
  arr:310000, arrPromo:250000, gc:60000, m2:30, dorm:1, tipo:"1d", piso:null, est:"viva", fuente:"MercadoLibre · Houm",
  url:"https://departamento.mercadolibre.cl/MLC-2102532307-departamento-santa-elena-id-167097-_JM",
  com:0, gar:0, not:0, bod:false, est_:false, masc:true, rentaX:2.8,
+ visita:{cuando:"Martes 18 de agosto, 18:00", estado:"agendada",
+  clave:"¿El «sin garantía ni aval» aplica igual si complementas renta con otra persona, o solo si calificas solo?",
+  porque:"Es la entrada más baja de toda la lista por lejos — pero toda esa ventaja depende de las condiciones exactas de Houm, que son distintas a una corredora tradicional: contrato digital, sin garantía, sin aval. Antes de firmar nada conviene que te muestren el contrato tipo y confirmes que esas condiciones son las mismas para tu caso particular, no solo el gancho publicitario.",
+  preguntas:["¿El precio real desde el segundo mes es $310.000 ($370.000 total con GGCC), como dice el aviso? Confírmalo con el asesor de Houm en la visita.",
+             "¿Los $60.000 de gasto común incluyen agua caliente?",
+             "Pide ver el contrato tipo de Houm antes de la visita si puedes — para saber qué firmas exactamente.",
+             "Orientación y luz real del departamento: el aviso no la especifica.",
+             "¿Hay bodega o estacionamiento disponible para arrendar aparte?"]},
  n:["🏆 Costo de entrada más bajo de toda la lista: Houm no pide garantía ni aval. Solo el primer mes.","⚠ Los $250.000 son promo del primer mes; desde el segundo son $310.000 ($370.000 total).","Renta exigida 2,8x y se puede complementar. Contrato online.","Construcción 2020, acepta mascotas, cocina amoblada, conexión a lavadora."]},
 
 {id:"ml-4255015634", t:"Maule 150 — Blue Home, piso 2", dir:"Maule 150, Santiago", sec:"Ñuble / Santa Elena", lat:-33.465275119536535, lng:-70.62934061612688,
