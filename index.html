@@ -1027,7 +1027,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
    Si ya habías tocado algún botón antes de este cambio, la siembra no corre:
    marca a mano los que falten, es la única forma de no arriesgar lo tuyo. */
 const SEG_SEED = {
-  "ml-4261693998":"agendado",   // Gral. Jofré 202 — domingo 16, 11:45
+  "ml-4261693998":"visitado",   // Gral. Jofré 202 — visitado domingo 16
+  "as-portugal520":"visitado",  // Portugal 520, depto 313 — visitado domingo 16
   "ml-2102532307":"agendado",   // Sta. Elena 1655 (Houm) — martes 18, 18:00
   "pi-2076411821":"contactado", // Curicó c/ Fray Camilo Henríquez
   "pi-4320355190":"contactado", // Alcalde Carlos Aldunate 33
@@ -1038,12 +1039,28 @@ const SEG_SEED = {
   "pi-4161002076":"contactado", // Monjitas 360
   "ml-4233325044":"contactado", // Gral. Jofré 107, a pasos de Parque Bustamante
 };
+/* La siembra es incremental e idempotente: cada id de SEG_SEED se aplica una
+   sola vez en la vida de este navegador (registrado en SEG_SEED_APLICADOS),
+   y solo si esa tarjeta sigue sin ningún estado. Así, cuando agrego avisos
+   nuevos a la semilla en una próxima actualización, se rellenan solos sin
+   arriesgarse a pisar un clic tuyo posterior. Si un id ya fue sembrado antes
+   con un valor distinto (p. ej. pasó de "agendado" a "visitado"), la
+   actualización no se aplica sola — ese cambio puntual toca marcarlo a mano,
+   porque no hay forma segura de distinguir "sigue como lo dejé" de "el
+   usuario ya lo corrigió a mano". */
 const SEG_KEY = "arriendo.seguimiento";
+const SEG_SEMB_KEY = "arriendo.seguimiento.sembrados";
 let SEG = {};
 try{
-  const g=localStorage.getItem(SEG_KEY);
-  if(g){ SEG=JSON.parse(g); }
-  else{ SEG={...SEG_SEED}; localStorage.setItem(SEG_KEY, JSON.stringify(SEG)); }
+  SEG = JSON.parse(localStorage.getItem(SEG_KEY) || "{}");
+  const sembrados = new Set(JSON.parse(localStorage.getItem(SEG_SEMB_KEY) || "[]"));
+  let cambio=false;
+  for(const [id,val] of Object.entries(SEG_SEED)){
+    if(!sembrados.has(id) && SEG[id]==null){ SEG[id]=val; cambio=true; }
+    sembrados.add(id);
+  }
+  if(cambio) localStorage.setItem(SEG_KEY, JSON.stringify(SEG));
+  localStorage.setItem(SEG_SEMB_KEY, JSON.stringify([...sembrados]));
 }catch(e){}
 function guardarSeg(){ try{ localStorage.setItem(SEG_KEY, JSON.stringify(SEG)); }catch(e){} }
 const SEG_LBL = {contactado:"📨 Contacté", agendado:"📅 Visita agendada", visitado:"✅ Ya fui"};
@@ -1135,19 +1152,18 @@ const D = [
  com:0, gar:1, garIni:0.5, bod:true, est_:false, masc:true,
  n:["Multifamily: sin comisión de corretaje y garantía en 3 cuotas (50% inicial).","39,5 m² es mucho para un estudio; bodega incluida en el precio.","Acepta mascotas. Termopanel PVC, termo eléctrico, equipado con horno y cortinas roller.","Publicado el 15 de agosto — recién salido."]},
 
-{id:"ml-4261693998", t:"Gral. Jofré 202, depto 606 — VISITA MAÑANA 11:45", dir:"Gral. Jofré 202, Santiago", sec:"Santa Isabel / Bustamante", lat:-33.444939983439305, lng:-70.63550605610277,
+{id:"ml-4261693998", t:"Gral. Jofré 202, depto 606", dir:"Gral. Jofré 202, Santiago", sec:"Santa Isabel / Bustamante", lat:-33.444939983439305, lng:-70.63550605610277,
  arr:300000, gc:80000, m2:29.36, dorm:0, tipo:"estudio", piso:6, est:"viva", fuente:"Assetplan · Colife / MercadoLibre",
  url:"https://www.assetplan.cl/arriendo/departamento/santiago/colife/927/retail/332602",
  entFija:490500, rentaX:2.5, aval:"no", dudaTipo:true,
- visita:{cuando:"Domingo 16 de agosto, 11:45", estado:"agendada",
-  clave:"¿El dormitorio es una pieza cerrada, o es un espacio abierto?",
-  porque:"El mismo departamento está publicado dos veces y se contradice. Assetplan dice «1 dormitorio»; MercadoLibre declara <strong>«Dormitorios: 0» y «tipo Estudio»</strong>. Coinciden dirección, piso, m², precio, gasto común, vista y mascotas — es la misma unidad. Y en Assetplan va bajo la marca <strong>Colife</strong>, su línea de co-living. Como no te gustan los de un ambiente, esa es <em>la</em> pregunta del día. Con verlo sales de la duda en diez segundos.",
-  preguntas:["¿Los $80.000 de gasto común («referenciales») incluyen el agua caliente?",
-             "¿Qué otras unidades tienen disponibles en el edificio? Manejan varias.",
-             "¿Hay bodega arrendable aparte y a cuánto?",
-             "Fíjate en la luz real a esa hora: <strong>vista sur en Santiago es sin sol directo nunca</strong>."]},
  bod:false, est_:false, masc:true,
- n:["🗓️ <strong>Visita agendada: domingo 16 de agosto, 11:45.</strong> Llega con una pregunta hecha: <strong>¿el dormitorio es una pieza cerrada?</strong>","⚠ <strong>El mismo departamento está publicado dos veces y se contradice.</strong> En Assetplan dice «1 dormitorio»; en MercadoLibre la ficha declara <strong>«Dormitorios: 0» y «tipo Estudio»</strong>. Coinciden dirección, piso 6, 29,36 m², $300.000, GGCC $80.000, vista sur, mascotas y que no tiene bodega: es la misma unidad.","Súmale que en Assetplan va bajo la marca <strong>Colife</strong>, que es su línea de co-living — formato que suele ser de un ambiente. Con verlo sales de la duda en diez segundos.","Entrada <strong>confirmada y desglosada</strong>: $300.000 arriendo + $178.500 comisión + $12.000 informes = $490.500. La garantía va aparte, en 3 cuotas de $100.000.","Renta exigida de solo <strong>2,5× ($750.000)</strong> y complementable con hasta 2 avales — de los requisitos más blandos de la lista. Precio fijo por 12 meses.","Pregunta allá: si los $80.000 de GGCC («referenciales») incluyen agua caliente, qué otras unidades tienen en el edificio, y si hay bodega arrendable aparte.","⚠ Vista sur en Santiago significa <strong>sin sol directo nunca</strong>. Fíjate en la luz real a esa hora."]},
+ n:["✅ <strong>Visitado el 16 de agosto.</strong> Te gustó el diseño y los colores. No te gustó la vista sur — se confirmó lo que decía la ficha: sin sol directo.","⚠ <strong>Sigue sin resolverse la duda del ambiente</strong> — no mencionaste si el dormitorio era pieza cerrada o espacio abierto, que era justo la pregunta clave de esta visita. Confírmalo para saber si de verdad calza con lo que buscas.","El mismo departamento está publicado dos veces y se contradice: Assetplan dice «1 dormitorio»; MercadoLibre declara «Dormitorios: 0» y «tipo Estudio». Coinciden dirección, piso 6, 29,36 m², $300.000, GGCC $80.000, vista sur, mascotas y que no tiene bodega: es la misma unidad, bajo la marca Colife (co-living).","Entrada confirmada y desglosada: $300.000 arriendo + $178.500 comisión + $12.000 informes = $490.500. Garantía aparte, en 3 cuotas de $100.000.","Renta exigida de solo 2,5× ($750.000) y complementable con hasta 2 avales — de los requisitos más blandos de la lista. Precio fijo por 12 meses."]},
+
+{id:"as-portugal520", t:"Depto 313 (amoblado, con azotea)", dir:"Av. Portugal 520, Santiago", sec:"Santa Isabel / Bustamante", lat:-33.4487, lng:-70.6350,
+ arr:360000, gc:65000, m2:32, dorm:1, tipo:"1d", piso:3, est:"viva", fuente:"Assetplan · Colife",
+ nolink:true,
+ com:0, gar:1, garIni:1/3, rentaX:2.5, aval:"no", bod:true, est_:false, masc:true,
+ n:["✅ <strong>Visitado el 16 de agosto.</strong> Te gustó la azotea: espacio amplio para hacer ejercicio.","⚠ No te gustó la vista ni la orientación sur, y sentiste que el precio se sale un poco del presupuesto — quizás contando con que se reajuste.","<strong>Viene amoblado</strong>, a diferencia de casi todos los demás de la lista — vale la pena confirmar qué muebles incluye exactamente.","Terraza de 5 m², 1 bodega, sin estacionamiento. Disponible desde el 20 de agosto.","Promo: precio fijo por 6 meses (no 12, como otros Assetplan), garantía en cuotas.","Renta 2,5× sola ($900.000), o hasta 2 avales completando 3× total.","OP 26062 · gasto común «referencial» — puede variar.","📍 Sin link propio, lo viste directo en la app/sitio de Assetplan. Coordenada estimada junto a Portugal 564, que sí tiene pin verificado — no es un pin de terreno propio."]},
 
 {id:"as-jofre107-202", t:"Gral. Jofré 107, depto 202 — 2D 2B", dir:"Gral. Jofré 107, Santiago", sec:"Santa Isabel / Bustamante", lat:-33.4444988331667, lng:-70.63471774097867,
  arr:430000, gc:null, gcEst:100000, m2:48, dorm:2, tipo:"2d", piso:2, est:"viva", fuente:"Assetplan · Trinos de Santiago",
