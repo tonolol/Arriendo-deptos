@@ -1654,7 +1654,7 @@ function tarjeta(d,i){
   if(d.masc) badges.push(`<span class="bdg b">mascotas</span>`);
   if((d.com??0.595)===0) badges.push(`<span class="bdg a">sin comisión</span>`);
   if(d.aval==="no") badges.push(`<span class="bdg a">sin aval</span>`);
-  if(d.aval==="si") badges.push(`<span class="bdg">exige aval</span>`);
+  if(d.aval==="si") badges.push(`<span class="bdg d">exige aval</span>`);
   if(arrOf(d)>PRESUPUESTO) badges.push(`<span class="bdg d">+${Math.round((arrOf(d)/PRESUPUESTO-1)*100)}% s/ presupuesto</span>`);
   if(hayRenta() && !califica(d)) badges.push(`<span class="bdg d">no calificas solo</span>`);
 
