@@ -1404,6 +1404,13 @@ const D = [
  url:"#", nolink:true,
  bod:false, est_:true, masc:false,
  n:["⛔ $550.000 totales: 20% sobre presupuesto y 43% de tu líquido. Fuera de rango.","A estrenar, 43 m² (36,3 útiles) + terraza 7 m² norte, piso 16, con estacionamiento.","Piscina, gimnasio, cowork, sala de cine, seguridad 24/7. Contacto +56 9 4531 8822."]},
+
+/* ---------- SANTIAGO CENTRO ---------- */
+{id:"tt-santaisabel55", t:"1D 1B Piso 11, Orientación Sur (TikTok)", dir:"Santa Isabel 55, Santiago Centro", sec:"Santiago Centro", lat:-33.4471, lng:-70.6305, aprox:true,
+ arr:330000, gc:89000, dorm:1, tipo:"1d", piso:11, est:"viva", fuente:"TikTok",
+ url:"#", nolink:true, whatsapp:"+56963041696",
+ com:0, gar:1, garIni:1/6, bod:false, est_:false, masc:false,
+ n:["Corretaje gratis. Garantía hasta en 6 cuotas.","1 cuadra de Metro Santa Isabel (L1).","Piso 11, orientación sur. Conexión a lavadora, sin balcón.","Estacionamiento opcional: $89.000 aparte (2.2 UF).","⚠ Ubicación aproximada — confirmar dirección exacta con el contacto."]},
 ];
 
 /* ---- avisos muertos / descartados ---- */
@@ -1595,6 +1602,7 @@ function popHTML(d){
   const gc=gcOf(d), lbl=ESTLBL[d.est]||["",""], seg=SEG[d.id];
   const link = d.nolink ? `<div style="text-align:center;font-size:12px;color:var(--ink-3)">Sin link — contacto directo</div>`
     : `<a class="go" href="${d.url}" target="_blank" rel="noopener">Abrir el aviso ↗</a>`;
+  const whatsappBtn = d.whatsapp ? `<a class="go" href="https://wa.me/${d.whatsapp.replace(/\D/g,'')}?text=Hola!%20Est%C3%A1%20disponible?" target="_blank" rel="noopener">WhatsApp 💬</a>` : "";
   return `<div class="pop">
     <h4>${d.t}</h4>
     <p class="addr">${d.dir}${d.aprox?" · 📍 ubicación aproximada":""}</p>
@@ -1606,7 +1614,7 @@ function popHTML(d){
       <tr class="ent"><td>Costo de entrada (día 1)</td><td>${clp(d._e.dia1)}</td></tr>
       ${d.m2?`<tr><td>Superficie</td><td>${d.m2} m²</td></tr>`:""}
       <tr><td>Estado</td><td>${lbl[0]}</td></tr>
-    </table>${link}</div>`;
+    </table>${link}${whatsappBtn}</div>`;
 }
 
 /* Los marcadores se dibujan de peor a mejor para que los verdes queden
@@ -1678,6 +1686,7 @@ function tarjeta(d,i){
     <div class="cardfoot">
       <button class="btn" data-goto="${d.id}">Ver en el mapa</button>
       ${d.nolink?"":`<a class="btn pri" href="${d.url}" target="_blank" rel="noopener">Abrir aviso</a>`}
+      ${d.whatsapp?`<a class="btn" href="https://wa.me/${d.whatsapp.replace(/\D/g,'')}?text=Hola!%20Est%C3%A1%20disponible?" target="_blank" rel="noopener">WhatsApp</a>`:""}
       <span class="score">${d.m2?clp(Math.round(d._t/d.m2))+"/m² · ":""}puntaje ${d._s}</span>
     </div>
   </article>`;
